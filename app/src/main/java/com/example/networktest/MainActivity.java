@@ -8,6 +8,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.xml.sax.InputSource;
+import org.xml.sax.XMLReader;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 
@@ -18,8 +25,10 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.xml.parsers.SAXParserFactory;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -40,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         if(view.getId()==R.id.send_request){
 //           sendRequesWithHttpURLConnection();
-            sendRequestWithokHttp();
+            sendRequestWithokHttp(); //OKHttp
         }
     }
     private void sendRequestWithokHttp(){
@@ -50,17 +59,58 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             try {
                 OkHttpClient client=new OkHttpClient();
                 Request request=new Request.Builder()
-                        .url("http://192.168.31.225/get_data.xml") //url("http://10.0.2.2/get_data.xml") http://127.0.0.1/get_data.xml
+                        .url("http://192.168.31.225/get_data.json") //url("http://10.0.2.2/get_data.xml") http://127.0.0.1/get_data.xml
                         .build();
                 Response response=client.newCall(request).execute();
                 String responseData=response.body().string();
-                parseXMLWithPull(responseData);
+//                parseXMLWithPull(responseData);
+//                parseXMLWithSAX(responseData);
                 showResponse(responseData);
+//                parseJSONWithJSONobject(responseData);
+                parseJSONWithGSON(responseData);
             }catch (Exception e){
                 e.printStackTrace();
             }
             }
         }).start();
+    }
+    private void parseJSONWithGSON(String jsonData){ //使用 GSON 库解析
+        Gson gson=new Gson();
+        List<App> appList=gson.fromJson(jsonData,new TypeToken<List<App>>(){}.getType());
+        for (App app :appList){
+            Log.d(TAG,"id is "+app.getId());
+            Log.d(TAG,"name is "+app.getName());
+            Log.d(TAG,"Version is "+app.getVersion());
+        }
+    }
+    private void parseJSONWithJSONobject(String jsonData){
+        try {
+            JSONArray jsonArray=new JSONArray(jsonData);
+            for (int i=0;i<jsonArray.length();i++){
+                JSONObject jsonObject=jsonArray.getJSONObject(1);
+                String id=jsonObject.getString("id");
+                String name=jsonObject.getString("name");
+                String version =jsonObject.getString("version");
+                Log.d("MainActivity","id is"+id);
+                Log.d("MainActivity","name is"+name);
+                Log.d("MainActivity","version is"+version);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+    private void parseXMLWithSAX(String xmlData){
+        try {
+            SAXParserFactory factory=SAXParserFactory.newInstance();
+            XMLReader xmlReader=factory.newSAXParser().getXMLReader();
+            ContentHandler handler=new ContentHandler();
+            //将ContentHandle 的实例设置到XMLReader 中
+            xmlReader.setContentHandler(handler);
+            //开始执行解析
+            xmlReader.parse(new InputSource(new StringReader(xmlData)));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
     private void parseXMLWithPull(String xmlData){
         try {
