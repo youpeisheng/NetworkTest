@@ -66,8 +66,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                parseXMLWithPull(responseData);
 //                parseXMLWithSAX(responseData);
                 showResponse(responseData);
-//                parseJSONWithJSONobject(responseData);
-                parseJSONWithGSON(responseData);
+//                parseJSONWithJSONobject(responseData);//使用官方JSONObject 解析
+                parseJSONWithGSON(responseData); //使用 GSON 库解析
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Log.d(TAG,"Version is "+app.getVersion());
         }
     }
-    private void parseJSONWithJSONobject(String jsonData){
+    private void parseJSONWithJSONobject(String jsonData){ //使用官方JSONObject 解析
         try {
             JSONArray jsonArray=new JSONArray(jsonData);
             for (int i=0;i<jsonArray.length();i++){
